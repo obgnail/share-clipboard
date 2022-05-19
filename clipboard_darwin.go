@@ -1,6 +1,6 @@
 // +build darwin
 
-package src
+package share_clipboard
 
 import (
 	"os/exec"

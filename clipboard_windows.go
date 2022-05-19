@@ -1,6 +1,6 @@
 // +build windows
 
-package src
+package share_clipboard
 
 import (
 	"runtime"

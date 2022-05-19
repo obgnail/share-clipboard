@@ -1,6 +1,6 @@
 // +build freebsd linux netbsd openbsd solaris dragonfly
 
-package src
+package share_clipboard
 
 import (
 	"errors"
