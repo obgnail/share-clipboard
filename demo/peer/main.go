@@ -2,25 +2,44 @@ package main
 
 import (
 	"github.com/juju/errors"
-	"github.com/obgnail/share-clipboard"
+	clipboard "github.com/obgnail/share-clipboard"
 	log "github.com/sirupsen/logrus"
-	"time"
+	"golang.design/x/hotkey/mainthread"
 )
 
-func main() {
-	addr := "127.0.0.1:8899"
-	p, _ := share_clipboard.NewPeer(addr)
+func main() { mainthread.Init(fn) }
 
-	go func() {
-		for {
-			p.Send()
-			p.Load(func(data []byte) { log.Println("return::", string(data)) })
-			time.Sleep(time.Second * 3)
-		}
-	}()
+func fn() {
+	log.Info("--- read config ---")
+	config, err := clipboard.ReadConfig("../config.json")
+	if err != nil {
+		log.Errorf("read config err: %s", err)
+	}
+	addr := config.ServerAddr
+	sendHK := config.SendClipboardHotKey
+	loadHK := config.LoadClipboardHotKey
+	if len(addr) == 0 || len(sendHK) == 0 || len(loadHK) == 0 {
+		log.Errorf("read config err: sendHK/loadHK empty")
+	}
 
-	if err := p.Run(); err != nil {
-		err = errors.Trace(err)
+	log.Infof("addr:\t %s", addr)
+	log.Infof("send:\t %s", sendHK)
+	log.Infof("load:\t %s", loadHK)
+
+	log.Info("--- start ---")
+	err = clipboard.ListenHotKey(sendHK, func() {
+		clipboard.PeerSendClipboard(addr)
+	})
+	if err != nil {
 		log.Error(errors.ErrorStack(err))
 	}
+	err = clipboard.ListenHotKey(loadHK, func() {
+		clipboard.PeerLoadClipboard(addr)
+	})
+	if err != nil {
+		log.Error(errors.ErrorStack(err))
+	}
+
+	forever := make(chan struct{}, 1)
+	<-forever
 }

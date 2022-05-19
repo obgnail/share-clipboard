@@ -1,14 +1,22 @@
 package main
 
 import (
-	"github.com/juju/errors"
-	"github.com/obgnail/share-clipboard"
+	clipboard "github.com/obgnail/share-clipboard"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	addr := "127.0.0.1:8899"
-	if err := share_clipboard.NewServer(addr).Serve(); err != nil {
-		log.Error(errors.ErrorStack(err))
+	log.Info("--- read config ---")
+	config, err := clipboard.ReadConfig("../config.json")
+	if err != nil {
+		log.Errorf("read config err: %s", err)
 	}
+	addr := config.ServerAddr
+	if len(addr) == 0 {
+		log.Errorf("read config err: addr empty")
+	}
+	log.Infof("addr:\t %s", addr)
+
+	log.Info("--- start serve ---")
+	clipboard.ServerRun(addr)
 }

@@ -21,30 +21,50 @@ func NewPeer(raddr string) (*Peer, error) {
 	return &Peer{raddr: rAddr, events: make(chan *event, 1)}, nil
 }
 
-func (p *Peer) Send() {
+func (p *Peer) Close() {
+	close(p.events)
+}
+
+func (p *Peer) SendLoop() {
 	p.events <- defaultCopyEvent
 }
 
-func (p *Peer) Load(callback func(data []byte)) {
+func (p *Peer) SendOnce() {
+	p.events <- copyEvent(func([]byte) {
+		p.Close()
+	})
+}
+
+func (p *Peer) LoadLoop(callback func([]byte)) {
 	p.events <- pasteEvent(callback)
 }
 
-func (p *Peer) DefaultLoad() {
+func (p *Peer) DefaultLoadLoop() {
 	p.events <- defaultPasteEvent
 }
 
+func (p *Peer) LoadOnce(callback func(data []byte)) {
+	p.events <- pasteEvent(func(data []byte) {
+		if callback != nil {
+			callback(data)
+		}
+		p.Close()
+	})
+}
+
 func (p *Peer) Run() error {
+	conn, err := net.DialTCP("tcp", nil, p.raddr)
+	if err != nil {
+		return errors.Trace(err)
+	}
+	defer conn.Close()
+	log.Debugf("Dail: %s -> %s", conn.LocalAddr().String(), conn.RemoteAddr().String())
+
 	buf := GetBuffer()
 	defer PutBuffer(buf)
-
 	limitChan := make(chan struct{}, 1)
 	for event := range p.events {
 		limitChan <- struct{}{}
-		conn, err := net.DialTCP("tcp", nil, p.raddr)
-		if err != nil {
-			return errors.Trace(err)
-		}
-		log.Debugf("Dail: %s -> %s", conn.LocalAddr().String(), conn.RemoteAddr().String())
 		msg, err := event.build()
 		if err != nil {
 			return errors.Trace(err)
@@ -74,7 +94,7 @@ func (p *Peer) Run() error {
 }
 
 var (
-	defaultCopyEvent  = copyEvent()
+	defaultCopyEvent  = copyEvent(nil)
 	defaultPasteEvent = pasteEvent(nil)
 )
 
@@ -85,7 +105,7 @@ type event struct {
 	extra   func(data []byte)
 }
 
-func copyEvent() *event {
+func copyEvent(callback func(data []byte)) *event {
 	return &event{
 		typ: ActionTypeCopy,
 		build: func() ([]byte, error) {
@@ -99,7 +119,7 @@ func copyEvent() *event {
 			return w.Bytes(), nil
 		},
 		success: nil,
-		extra:   nil,
+		extra:   callback,
 	}
 }
 

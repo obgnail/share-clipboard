@@ -1,0 +1,5 @@
+{
+  "server_addr": "192.168.3.3:8899",
+  "send_clipboard_hotkey": "Alt+C",
+  "load_clipboard_hotkey": "Alt+V"
+}
