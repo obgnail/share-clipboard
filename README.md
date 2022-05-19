@@ -12,8 +12,8 @@ import (
 )
 
 func main() {
-  addr := "192.168.3.3:8899"
-  clipboard.ServerRun(addr)
+	addr := "192.168.3.3:8899"
+	clipboard.ServerRun(addr)
 }
 ```
 
@@ -32,9 +32,9 @@ import (
 func main() { mainthread.Init(fn) }
 
 func fn() {
-  addr   := "192.168.3.3:8899"
-  sendHK := "Alt+C"
-  loadHK := "Alt+V"
+	addr := "192.168.3.3:8899"
+	sendHK := "Alt+C"
+	loadHK := "Alt+V"
 
 	err = clipboard.ListenHotKey(sendHK, func() {
 		clipboard.PeerSendClipboard(addr)
