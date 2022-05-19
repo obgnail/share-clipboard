@@ -36,7 +36,7 @@ func fn() {
 	sendHK := "Alt+C"
 	loadHK := "Alt+V"
 
-  err := clipboard.ListenHotKey(sendHK, func() {
+	err := clipboard.ListenHotKey(sendHK, func() {
 		clipboard.PeerSendClipboard(addr)
 	})
 	if err != nil {
