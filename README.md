@@ -13,7 +13,7 @@ import (
 
 func main() {
   addr := "192.168.3.3:8899"
-	clipboard.ServerRun(addr)
+  clipboard.ServerRun(addr)
 }
 ```
 
