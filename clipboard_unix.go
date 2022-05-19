@@ -88,8 +88,6 @@ func init() {
 			return
 		}
 	}
-
-	Unsupported = true
 }
 
 func getPasteCommand() *exec.Cmd {
@@ -107,9 +105,6 @@ func getCopyCommand() *exec.Cmd {
 }
 
 func GetTextFromClip() (string, error) {
-	if Unsupported {
-		return "", missingCommands
-	}
 	pasteCmd := getPasteCommand()
 	out, err := pasteCmd.Output()
 	if err != nil {
@@ -131,9 +126,6 @@ func GetBytesFromClip() ([]byte, error) {
 }
 
 func SetClipText(text string) error {
-	if Unsupported {
-		return missingCommands
-	}
 	copyCmd := getCopyCommand()
 	in, err := copyCmd.StdinPipe()
 	if err != nil {
