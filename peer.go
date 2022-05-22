@@ -62,9 +62,7 @@ func (p *Peer) Run() error {
 
 	buf := GetBuffer()
 	defer PutBuffer(buf)
-	limitChan := make(chan struct{}, 1)
 	for event := range p.events {
-		limitChan <- struct{}{}
 		msg, err := event.build()
 		if err != nil {
 			return errors.Trace(err)
@@ -88,7 +86,6 @@ func (p *Peer) Run() error {
 		if event.extra != nil {
 			event.extra(buf[Len:n])
 		}
-		<-limitChan
 	}
 	return nil
 }
